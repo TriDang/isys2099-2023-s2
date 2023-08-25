@@ -2,7 +2,7 @@ function login(username, password, callback) {
   const mysql = require("mysql");
   const connection = mysql.createConnection({
     host: "localhost",
-    user: "root",
+    user: "app_user",
     password: "password",
     database: "app",
   });

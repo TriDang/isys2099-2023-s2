@@ -15,7 +15,7 @@ app.post("/", (req, res) => {
   const { username, password } = req.body;
   mysql.login(username, password, (result) => {
     if (result && result.length > 0) {
-      res.send('Login successfully');
+      res.send(`Welcome ${result[0].username}`);
     } else {
       res.send('Username/password is incorrect');
     }
