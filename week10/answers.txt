@@ -1,0 +1,33 @@
+// Exercise 2
+
+db.books.find();
+
+db.books.find({}, { title: 1, isbn: 1, pageCount: 1, _id: 0 });
+
+db.books.find({ title: "Test Driven" });
+
+db.books.find({ pageCount: { $gt: 500 } });
+
+db.books.find({ pageCount: { $gt: 500, $lt: 600 } });
+
+db.books.find({
+  $or: [{ pageCount: { $gt: 1000 } }, { pageCount: { $lt: 200, $gt: 0 } }],
+});
+
+db.books.find({ title: /Android/ });
+
+db.books.find({ title: { $regex: /^Java/ } });
+db.books.find({ title: { $regex: /Java$/ } });
+
+db.books.find({ authors: { $all: ["Robi Sen"] } });
+db.books.find({ authors: "Robi Sen" });
+
+db.books.find({ categories: "Java" }).count();
+
+// Exercise 3
+
+db.books.insertOne({ title: "Best Book ever", pageCount: 1001, price: 99.9 });
+
+db.books.updateMany({ price: { $gt: 1 } }, { $set: { price: 1.1 } });
+
+db.books.deleteMany({ pageCount: 0 });
