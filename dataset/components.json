@@ -1,0 +1,6 @@
+{ "_id" : { "$oid" : "507d95d5719dbef170f15bf9" }, "name" : "AC3 Series Charger", "type" : [ "accessory", "charger" ], "price" : 19, "rating" : 2.8,"warranty_years" : 0.25, "for" : [ "ac3", "ac7", "ac9" ] }
+{ "_id" : { "$oid" : "507d95d5719dbef170f15bfa" }, "name" : "AC3 Case Green", "type" : [ "accessory", "case" ], "color" : "green", "price" : 12, "rating" : 1,"warranty_years" : 0 }
+{ "_id" : { "$oid" : "507d95d5719dbef170f15bfb" }, "name" : "Phone Extended Warranty", "type" : "warranty", "price" : 38, "rating" : 5,"warranty_years" : 2, "for" : [ "ac3", "ac7", "ac9", "qp7", "qp8", "qp9" ] }
+{ "_id" : { "$oid" : "507d95d5719dbef170f15bfc" }, "name" : "AC3 Case Black", "type" : [ "accessory", "case" ], "color" : "black", "price" : 12.5, "rating" : 2,"warranty_years" : 0.25, "available" : false, "for" : "ac3" }
+{ "_id" : { "$oid" : "507d95d5719dbef170f15bfd" }, "name" : "AC3 Case Red", "type" : [ "accessory", "case" ], "color" : "red", "price" : 12, "rating" : 4,"warranty_years" : 0.25, "available" : true, "for" : "ac3" }
+

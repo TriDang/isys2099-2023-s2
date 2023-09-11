@@ -1,0 +1,2 @@
+{ "_id" : "ac3", "name" : "AC3 Phone", "brand" : "ACME", "type" : "phone", "price" : 200, "rating" : 3.8,"warranty_years" : 1, "available" : true }
+{ "_id" : "ac7", "name" : "AC7 Phone", "brand" : "ACME", "type" : "phone", "price" : 320, "rating" : 4,"warranty_years" : 1, "available" : false }
