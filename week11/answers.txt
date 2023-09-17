@@ -1,0 +1,9 @@
+db.students.find({ "scores.score" : {$gt: 99} });
+
+db.students.find({ scores: { $elemMatch: {score: {$gt: 99}, type: "homework" }}});
+
+db.students.find({ "scores.score": { $not: { $lte: 90 }}});
+
+db.products.aggregate({ $lookup: { localField: "_id", from: "components", foreignField: "for", as: "productComponents" }});
+
+db.products.aggregate([{ $lookup: { localField: "_id", from: "components", foreignField: "for", as: "productComponents" }}, { $unwind: "$productComponents" }, { $group: { _id: "$_id", totalPrice: { $sum: "$productComponents.price" }}}, { $sort: {totalPrice: 1 }}]);
