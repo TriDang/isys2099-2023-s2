@@ -1,0 +1,241 @@
+PROBLEM 1
+
+=== INSERT DATA ===
+
+db.teams.insertOne({_id: 1,name: 'Manchester United', points: 3, matches: [{opponent_id: 2, goals: -2}, {opponent_id: 3, goals: 1}, {opponent_id: 4, goals: 1}]});
+
+db.teams.insertOne({_id: 2,name: 'Barcelona', points: 5, matches: [{opponent_id: 1, goals: 0}, {opponent_id: 3, goals: -1}, {opponent_id: 4, goals: 1}]});
+
+db.teams.insertOne({_id: 3,name: 'RMIT', points: 7, matches: [{opponent_id: 1, goals: -2}, {opponent_id: 2, goals: 0}, {opponent_id: 4, goals: -1}]});
+
+db.teams.insertOne({_id: 4,name: 'Tri', points: 4, matches: [{opponent_id: 1, goals: 0}, {opponent_id: 2, goals: 0}, {opponent_id: 3, goals: 1}]});
+
+
+=== TOP TWO TEAMS ===
+
+db.teams.find().sort({points: -1}).limit(2);
+
+
+=== TEAMS NOT LOSE ===
+
+db.teams.find({'matches.goals': {$not: {$lt: 0}}});
+
+
+=== TEAMS DEFEATED BY YOU ===
+
+db.teams.find({matches: {$elemMatch: {opponent_id: 4, goals: {$lt: 0}}}})
+
+
+================================
+
+PROBLEM 2
+
+=== CREATE TABLES ===
+
+create table teams (
+  id int not null primary key auto_increment,
+  name varchar(20) not null unique,
+  points int not null
+) engine = innodb;
+
+create table matches (
+  id int primary key auto_increment,
+  home_team int,
+  away_team int,
+  home_score int,
+  away_score int
+) engine = innodb;
+
+
+=== INSERT DATA ===
+
+insert into teams(name, points)
+values ('Manchester United', 3), ('Barcelona', 5), ('RMIT', 7), ('Tri', 4);
+
+
+=== CREATE FUNCTION ===
+
+delimiter $$
+
+create function top_team()
+  returns int not deterministic
+  reads sql data
+begin
+  select id into @top_id
+  from teams
+  order by points desc
+  limit 1;
+  
+  return @top_id;
+end $$
+
+delimiter ;
+
+=== CREATE TRIGGER ===
+
+delimiter $$
+
+create trigger new_match_update_point
+  after insert on matches
+  for each row
+outer_most: begin
+  if new.home_score > new.away_score then
+    update teams set points = points + 3
+    where id = new.home_team;
+    leave outer_most;
+  end if;
+  if new.home_score < new.away_score then
+    update teams set points = points + 3
+    where id = new.away_team;
+    leave outer_most;
+  end if;
+  update teams set points = points + 1
+  where id = new.home_team OR id = new.away_team;
+end $$
+
+delimiter ;
+
+
+================================
+
+PROBLEM 3
+
+=== CREATE TABLE ===
+
+create table scores (
+  id int primary key auto_increment,
+  match_id int,
+  team_id int,
+  scorer_name varchar(50)
+) engine = innodb;
+
+
+=== CREATE PROCEDURE ===
+
+delimiter $$
+
+create procedure sp_score_a_goal(in param_match_id int, in param_team_id int, in param_scorer_name varchar(50))
+begin
+  start transaction;
+  
+  insert into scores(match_id, team_id, scorer_name)
+  values(param_match_id, param_team_id, param_scorer_name);
+  
+  select count(*) into @found
+  from matches
+  where id = param_match_id and (home_team = param_team_id or away_team = param_team_id);
+  
+  if @found = 0 then
+    rollback;
+  else
+    update matches set home_score = home_score + 1
+    where id = param_match_id and home_team = param_team_id;
+
+    update matches set away_score = away_score + 1
+    where id = param_match_id and away_team = param_team_id;
+  
+    commit;
+  end if;
+end $$
+
+delimiter ;
+
+=== CONCURRENCY ISSUE ===
+
+To demonstrate the mentioned concurrency issue, you can follow the below steps:
+- Open two command-line windows and connect to the required database.
+- On both windows, set the isolation level to read uncommitted.
+- On window 1, start a new transaction and insert a record into the "scores" table with your name.
+- On window 2, execute a select statement to verify that you can see your name as a scorer (this is a phantom read).
+- On window 1, roll back the transaction (for example, the pair <match_id and team_id> is not valid).
+- On window 2, execute the same select statement to verify that your name has disappeared.
+
+You can set the transaction isolation level to serializable to fix the above issue.
+
+
+================================
+
+PROBLEM 4
+
+=== CREATE DATABASE ===
+
+create database university;
+
+use university;
+
+=== CREATE TABLE ===
+
+create table result (
+	student_name VARCHAR(20),
+    course_name VARCHAR(20),
+    score DECIMAL(5, 2)
+) engine = innodb;
+
+
+=== CREATE ROLES ===
+create role 'manager_role';
+create role 'instructor_role';
+create role 'student_role';
+
+
+=== CREATE USERS ===
+create user 'first'@'localhost' identified by 'password';
+create user 'last'@'localhost' identified by 'password';
+
+
+=== ASSIGN PRIVILEGES ===
+grant select, update on university.result to 'manager_role';
+grant select, insert on university.result to 'instructor_role';
+grant select on university.result to 'student_role';
+
+grant manager_role, instructor_role to 'first'@'localhost';
+grant student_role to 'last'@'localhost';
+
+=== USAGE SCENARIOS ===
+-- login with 'first'
+mysql -ufirst -p
+
+-- set active role
+set role 'instructor_role';
+
+-- insert data
+insert into result (student_name, course_name, score) values ('Alice', 'DB App', 3.2);
+
+-- try to update
+update result set score = score + 0.1;
+-- should get an error
+
+-- set new active role
+set role 'manager_role';
+
+-- update again
+update result set score = score + 0.1;
+
+=== USING VIEWS TO CONTROL ACCESS ===
+
+-- first, insert several records with student_name set to 'last'
+-- 'last' should be your real last name
+
+-- create this view using root account
+create view your_result
+as
+select * from result
+where student_name = 'Last';
+
+-- assign select, update on the new view to 'last'@'localhost'
+grant select, update on university.your_result
+to 'last'@'localhost';
+
+-- login to MySQL using 'last'
+-- select
+select * from your_result;
+
+-- update
+update your_result set score = score + 0.1;
+
+-- select again
+select * from your_result;
+
+-- swith to 'student_role' to view the updated result table
+set role 'student_role';
+select * from result;
